@@ -1,3 +1,30 @@
-fn main() {
+use std::sync::Arc;
+
+use axum::{
+    routing::get,
+    Router,
+    Extension,
+};
+use routes::routes;
+mod routes;
+pub struct AppState {
+    h: handlebars::Handlebars<'static>,
+}
+pub type ExtAppState = Arc<AppState>;
+#[tokio::main]
+async fn main() {
+    let mut h = handlebars::Handlebars::new();
+    h.register_template_file("index", "templates/index.hbs")
+        .expect("Unable to register index template");
+    h.register_template_file("404", "templates/404.hbs")
+        .expect("Unable to register 404 template");
+    let state = Arc::new(AppState { h });
+
+    let app = Router::from(routes())
+                .layer(Extension(state));
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+
     println!("Hello, world!");
 }
