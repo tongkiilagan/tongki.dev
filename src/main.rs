@@ -1,12 +1,13 @@
+#![allow(non_camel_case_types)]
 use std::sync::Arc;
-
 use axum::{
-    routing::get,
     Router,
-    Extension,
+    Extension
 };
-use routes::routes;
 mod routes;
+mod middlewares;
+use crate::routes::routes::routes;
+
 pub struct AppState {
     h: handlebars::Handlebars<'static>,
 }
@@ -25,6 +26,4 @@ async fn main() {
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
-
-    println!("Hello, world!");
 }
