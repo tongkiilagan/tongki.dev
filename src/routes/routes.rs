@@ -1,12 +1,34 @@
-use axum::{Router, routing::get, Extension, response::{Html, IntoResponse}, middleware::{from_fn}, http::{StatusCode}};
+use axum::{Router, routing::get, Extension, response::{Html, Response, IntoResponse}, middleware::{from_fn}, http::{StatusCode}, Json};
 use serde::{Serialize};
 use serde_json::json;
 use askama::Template;
 
+
+enum ApiError{
+
+}
+#[derive(Serialize)]
+struct Message {
+    message: String
+}
+enum ApiOK {
+    Ok,
+}
 #[derive(Template)]
 #[template(path = "index.html")]
 struct IndexTemplate<'a> {
     name: &'a str,
+}
+
+impl IntoResponse for ApiOK {
+    fn into_response(self) -> Response {
+        let template = IndexTemplate {
+            name: "Tongki Ilagan"
+        };
+        match self {
+            Self::Ok => (StatusCode::OK, Html(template.render().unwrap())).into_response()
+        }
+    }
 }
 
 #[derive(Template)]
@@ -27,13 +49,10 @@ pub fn routes() -> Router {
         .route("/", get(root).route_layer(from_fn(index_middleware)))
         .fallback(not_found)
 }
-async fn root() -> impl IntoResponse{
-    let template = IndexTemplate {
-        name: "Test"
-    };
-    //let html = state.h.render("index", &json!({})).unwrap();
-    (StatusCode::OK, Html(template.render().unwrap()).into_response())
+async fn root() -> ApiOK{
 
+    //let html = state.h.render("index", &json!({})).unwrap();
+    ApiOK::Ok
 }
 async fn not_found() -> impl IntoResponse {
     let template = NotFoundTemplate {
